@@ -41,7 +41,7 @@ effect if the file is touched as well. Feel free to give it a try and let me
 know when you run into bugs.
 
  - Support exclusion of file and directories
-  - specify on command line and create .orefs/exclude file
+  - specify on command line and create .odisk/exclude file
    - use ::File.fnmatch(pattern, path, ::File::FNM_DOTMATCH)
   - pass array of excludes to digest creation
    - loosen up current restriction on any file that begins with .
@@ -69,9 +69,9 @@ know when you run into bugs.
 
 ## Installation
 
-Installation requires Ruby 1.9.3. After that, install the orefs gem.
+Installation requires Ruby 1.9.3. After that, install the odisk gem.
 
-    gem install orefs
+    gem install odisk
 
 The net-ssh and net-sftp gems are also needed as are the oj and opee gems.
 
@@ -90,34 +90,34 @@ when using ssh or sftp.
 
 ## Usage
 
-After a directory has been selected for backing up *orefs_sync* can be run to
+After a directory has been selected for backing up *odisk* can be run to
 copy the directory to a remote server. For purposes of this description the
 directory to be backed up is *~/backup*.
 
 A passphrase file will also be needed for encryption. The recommended location
-is in a *~/.orefs* directory. The contents of the file will be the passphrase
+is in a *~/.odisk* directory. The contents of the file will be the passphrase
 for *gpg*.
 
 Make sure you have a remote server that has an sftp and ssh daemon
 running. Your credentials must be set in the authorized_keys file. If you can
 login without a password it is set up correctly.
 
-The first time *orefs_sync* is used to backup a directory information about the
+The first time *odisk* is used to backup a directory information about the
 remote server must be provided. After the first time that information is not
-needed again. Alternatively a *~/.orefs/remotes* file can be set up before
-running *orefs_sync*.
+needed again. Alternatively a *~/.odisk/remotes* file can be set up before
+running *odisk*.
 
 To backup to *my_server.remote.com* for user *me* to the *backup* directory on
-the remote server with a passphrase file of *~/.orefs/backup.pass* the
+the remote server with a passphrase file of *~/.odisk/backup.pass* the
 following command should be executed.
 
-    orefs_sync -r me@my_server.remote.com:~/.orefs/backup.pass ~/backup
+    odisk -r me@my_server.remote.com:~/.odisk/backup.pass ~/backup
 
-A file named *~/backup/.orefs/remote* will be created with the connection
+A file named *~/backup/.odisk/remote* will be created with the connection
 information for future invocations so that the next time a backup is made on
 the *~/backup* directory the command only needs to be:
 
-    orefs_sync ~/backup
+    odisk ~/backup
 
 ## License:
 
