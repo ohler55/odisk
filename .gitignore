@@ -1,0 +1,10 @@
+*.gem
+*.rbc
+.orefs
+.rbenv-version
+test/version_tmp
+test/local
+test/remote
+tmp
+.yardoc
+doc/

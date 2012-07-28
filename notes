@@ -1,0 +1,11 @@
+;; -*- mode: outline; outline-regexp: " *[-\+]"; indent-tabs-mode: nil -*-
+
+^c^d hide subtree
+^c^s show subtree
+
+- home page
+ - write article on orefs and use of opee
+  - include diagram
+
+- add option to verify remote
+ - makes sure there is a file for each item in the digest

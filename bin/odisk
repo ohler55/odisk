@@ -1,0 +1,184 @@
+#!/usr/bin/env ruby -wW1
+# encoding: UTF-8
+
+while (i = ARGV.index('-I'))
+  x,path = ARGV.slice!(i, 2)
+  $: << path
+end
+
+# TBD tmp for testing
+$: << ::File.join(::File.dirname(__FILE__), "../../oj/lib")
+$: << ::File.join(::File.dirname(__FILE__), "../../oj/ext")
+$: << ::File.join(::File.dirname(__FILE__), "../../opee/lib")
+$: << ::File.join(::File.dirname(__FILE__), "../lib")
+
+require 'optparse'
+begin
+  v = $VERBOSE
+  $VERBOSE = false
+  require 'net/ssh'
+  require 'net/sftp'
+  $VERBOSE = v
+end
+require 'opee'
+require 'oj'
+require 'odisk'
+
+$verbose = Logger::WARN
+$dir = '.'
+$digests_only = false
+$dry_run = false
+$master = nil
+$plain = false
+$remote = ::ODisk::Remote.new()
+$crypter_count = 2
+$copier_count = 4
+
+opts = OptionParser.new('Usage: odisk [options] <local_directory>')
+opts.on('-s', 'decrease verbosity')                 { $verbose += 1 unless 5 == $verbose }
+opts.on('-v', 'increase verbosity')                 { $verbose -= 1 unless 0 == $verbose }
+opts.on('-d', 'generate digests only')              { $digests_only = true }
+opts.on('-u', 'unencrypted or plain remote files')  { $plain = true }
+opts.on('-n', 'dry run / no modifications')         { $dry_run = true }
+opts.on('-r', '--remote [user@host:dir:pass_file]',
+        String, 'remote user, host, directory, passphrase file for gpg')  { |r|
+  $remote.update(r)
+}
+opts.on('-m', '--master [local | remote]',
+        String, 'force master to local or remote')  { |m|
+  case m
+  when 'local'
+    $master = ::ODisk::Planner::Step::LOCAL
+  when 'remote'
+    $master = ::ODisk::Planner::Step::REMOTE
+  else
+    puts opts.help
+    Process.exit!(0)
+  end
+}
+opts.on('-e', '--encrypt-count Integer', Integer, 'number of encryption actors') { |i| $crypter_count = i }
+opts.on('-c', '--copier-count Integer', Integer, 'number of copier actors')      { |i| $copier_count = i }
+opts.on('-h', '--help', 'Show this display')                                     { puts opts.help; Process.exit!(0) }
+dirs = opts.parse(ARGV)
+
+if 1 != dirs.size
+  puts opts.help
+  Process.exit!(0)
+end
+$local_top = ::File.expand_path(dirs[0])
+
+# Walk up the directory tree looking for .odisk directories and a remote.json
+# in that directory. If the directory does not exist then stop the walk. If
+# not found check the ~/.odisk/remotes.json file for a matching top.
+top = $local_top
+if $ruser.nil? || $rhost.nil? || $rtop.nil?
+  while ::File.directory?(::File.join(top, '.odisk'))
+    rfile = ::File.join(top, '.odisk', 'remote')
+    if ::File.file?(rfile)
+      rstr = ::File.read(rfile).strip()
+      #$remote.pass_file = ::File.expand_path($remote.pass_file) unless $remote.pass_file.nil? || $remote.pass_file.empty?
+      orig_pass_file = $remote.pass_file
+      $remote.update(rstr)
+      $remote.pass_file = ::File.expand_path($remote.pass_file) unless $remote.pass_file.nil? || $remote.pass_file.empty?
+      if !$remote.dir.nil? && !$remote.dir.empty? && top != $local_top
+        $remote.dir = $remote.dir + $local_top[top.size..-1]
+      end
+      if $remote.pass_file != orig_pass_file && !::File.file?($remote.pass_file)
+        $remote.pass_file = ::File.join(top, '.odisk', $remote.pass_file)
+      end
+      break
+    end
+    top = ::File.dirname(top)
+  end
+end
+
+ODisk.info_from_remotes($local_top, $remote) unless $remote.complete?
+$remote.user = ENV['USER'] if $remote.user.nil?
+$remote.pass_file = nil if $plain
+unless $remote.okay?
+  puts "*** user@host:top_dir not specified on command line, in local .odisk/remote file, or in ~/.odisk/remotes"
+  puts opts.help
+  Process.exit!(0)
+end
+
+Thread.current[:name] = 'main'
+::Opee::Env.logger.formatter = proc { |s,t,p,m|
+  s = '' if s.nil?
+  "#{s[0]} [#{t.strftime('%Y-%m-%dT%H:%M:%S.%6N')} ##{p}]: #{m}\n"
+}
+::Opee::Env.logger.severity = $verbose
+
+if Logger::INFO >= $verbose
+  if $digests_only
+    ::Opee::Env.info(%{
+  Generate Local Digests
+    local directory:  #{::File.expand_path($local_top)}
+})
+  else
+    ::Opee::Env.info(%{
+  Synchronize
+    remote host:      #{$remote.host}
+    remote user:      #{$remote.user}
+    remote directory: #{$remote.dir}
+    local:            #{::File.expand_path($local_top)}
+    dry run:          #{$dry_run}
+    master:           #{$master.nil? ? 'NONE' : (::ODisk::Planner::Step::LOCAL == $master ? 'LOCAL' : 'REMOTE')}
+})
+  end
+end
+
+# If $local_top/.odisk/remote does not exist or is different that what is in $remote, replace it.
+remote_str = $remote.to_s
+top_remote_path = ::File.join($local_top, '.odisk', 'remote')
+if !::File.file?(top_remote_path) || ::File.read(top_remote_path).strip() != remote_str
+  ::Opee::Env.info("Writing #{top_remote_path}")
+  unless $dry_run
+  `mkdir -p #{::File.join($local_top, '.odisk')}`
+  ::File.open(top_remote_path, 'w') { |f| f.write(remote_str + "\n") }
+  end
+end
+
+fetcher = nil
+planner_inputs = [:digester, :starter]
+
+fixer = ::ODisk::StatFixer.new(:name => 'Fixer')
+dir_wq = ::Opee::WorkQueue.new(:method => :start, :name => 'DirWorkQueue')
+if $digests_only
+  copy_wq = nil
+  crypt_wq = nil
+else
+  copy_wq = ::Opee::AskQueue.new(:name => 'CopyQueue')
+  crypt_wq = ::Opee::AskQueue.new(:name => 'CryptQueue')
+  $copier_count.times { |i|
+    ::ODisk::Copier.new(:name => "Copier-#{i}",
+                        :crypt_queue => crypt_wq,
+                        :copy_queue => copy_wq,
+                        :fixer => fixer)
+  }
+  $crypter_count.times { |i|
+    ::ODisk::Crypter.new(:name => "Crypter-#{i}",
+                         :crypt_queue => crypt_wq,
+                         :copy_queue => copy_wq,
+                         :fixer => fixer)
+  }
+  planner_inputs << :fetcher
+end
+planner = ::ODisk::Planner.new(:name => 'Planner',
+                               :dir_queue => dir_wq,
+                               :copy_queue => copy_wq,
+                               :crypt_queue => crypt_wq,
+                               :inputs => planner_inputs,
+                               :fixer => fixer)
+fetcher = ::ODisk::Fetcher.new(:name => 'Fetcher',
+                               :collector => planner) unless $digests_only
+digester = ::ODisk::Digester.new(:name => 'Digester',
+                                 :collector => planner)
+starter = ::ODisk::SyncStarter.new(:name => 'Starter',
+                                   :dir_queue => dir_wq,
+                                   :digester => digester,
+                                   :fetcher => fetcher,
+                                   :collector => planner)
+
+dir_wq.ask(:add, '')
+
+::Opee::Env.wait_close()
