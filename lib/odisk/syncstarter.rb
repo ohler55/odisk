@@ -26,7 +26,7 @@ module ODisk
       @digester.ask(:create, job) unless @digester.nil?
 
       top = (path.nil? || path.empty?) ? $local_top : ::File.join($local_top, path)
-      prev_path = ::File.join(top, '.orefs', 'digest.json')
+      prev_path = ::File.join(top, '.odisk', 'digest.json')
       job.previous_digest = ::Oj.load_file(prev_path, mode: :object) if ::File.file?(prev_path)
       @collector.ask(:collect, job, :starter) unless @collector.nil?
       # ready for another

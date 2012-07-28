@@ -99,37 +99,37 @@ module ODisk
 
     def keep_going(job)
       path = ::File.join($local_top, job.path)
-      orefs_dir = ::File.join(path, '.orefs')
-      `mkdir -p "#{orefs_dir}"` unless ::File.directory?(orefs_dir) && !$dry_run
+      odisk_dir = ::File.join(path, '.odisk')
+      `mkdir -p "#{odisk_dir}"` unless ::File.directory?(odisk_dir) && !$dry_run
       if @copy_queue.nil? && @crypt_queue.nil? && !job.current_digest.nil? # digests_only
         if job.previous_digest.nil?
           job.current_digest.version = 1
         else
           job.current_digest.version = job.previous_digest.version + 1
-          Oj.to_file(::File.join(orefs_dir, 'digest.old.json'), job.previous_digest, indent: 2)
+          Oj.to_file(::File.join(odisk_dir, 'digest.old.json'), job.previous_digest, indent: 2)
         end
-        Oj.to_file(::File.join(orefs_dir, 'digest.json'), job.current_digest, indent: 2)
+        Oj.to_file(::File.join(odisk_dir, 'digest.json'), job.current_digest, indent: 2)
         job.current_digest.entries.each do |e|
           @dir_queue.ask(:add, job.path.empty? ? e.name : ::File.join(job.path, e.name)) if e.is_a?(::ODisk::Dir)
         end
       elsif job.remote_digest.nil?
-        process_new(job, orefs_dir)
+        process_new(job, odisk_dir)
       elsif ((job.current_digest.nil? || job.current_digest.empty?) &&
              (job.previous_digest.nil? || job.previous_digest.empty?))
-        process_down(job, orefs_dir)
+        process_down(job, odisk_dir)
       else
-        process_sync(job, orefs_dir)
+        process_sync(job, odisk_dir)
       end
     end    
 
-    def process_new(job, orefs_dir)
+    def process_new(job, odisk_dir)
       job.current_digest.version = 1
       job.new_digest = job.current_digest
       # determine update new_digest
       # write the digest files
       # TBD if they are the same then don't bother
-      Oj.to_file(::File.join(orefs_dir, 'digest.old.json'), job.previous_digest, indent: 2) unless job.previous_digest.nil?
-      Oj.to_file(::File.join(orefs_dir, 'digest.json'), job.new_digest, indent: 2)
+      Oj.to_file(::File.join(odisk_dir, 'digest.old.json'), job.previous_digest, indent: 2) unless job.previous_digest.nil?
+      Oj.to_file(::File.join(odisk_dir, 'digest.json'), job.new_digest, indent: 2)
 
       # get the transfers going for all files
       job.new_digest.entries.each do |e|
@@ -142,8 +142,8 @@ module ODisk
           remote = ::File.join($remote.dir, path)
           if $remote.encrypt?
             encrypt_path = (job.path.empty? ? 
-                            ::File.join($local_top, '.orefs', e.name + '.gpg') :
-                            ::File.join($local_top, job.path, '.orefs', e.name + '.gpg'))
+                            ::File.join($local_top, '.odisk', e.name + '.gpg') :
+                            ::File.join($local_top, job.path, '.odisk', e.name + '.gpg'))
             @crypt_queue.add_method(:encrypt, local, encrypt_path, remote + '.gpg')
           else
             @copy_queue.add_method(:upload, local, remote)
@@ -152,15 +152,15 @@ module ODisk
           # nothing to do
         end
       end
-      path = job.path.empty? ? ::File.join('.orefs', 'digest.json') : ::File.join(job.path, '.orefs', 'digest.json')
+      path = job.path.empty? ? ::File.join('.odisk', 'digest.json') : ::File.join(job.path, '.odisk', 'digest.json')
       local = ::File.join($local_top, path)
       remote = ::File.join($remote.dir, path)
       @copy_queue.add_method(:upload, local, remote)
     end
     
-    def process_down(job, orefs_dir)
+    def process_down(job, odisk_dir)
       job.new_digest = job.remote_digest
-      Oj.to_file(::File.join(orefs_dir, 'digest.json'), job.new_digest, indent: 2)
+      Oj.to_file(::File.join(odisk_dir, 'digest.json'), job.new_digest, indent: 2)
       full_job_path = job.path.empty? ? $local_top : ::File.join($local_top, job.path)
       stat_job = StatJob.new(full_job_path, job.new_digest)
       job.new_digest.entries.each do |e|
@@ -175,8 +175,8 @@ module ODisk
           stat_job.add_mod(e.name)
           if $remote.encrypt?
             encrypt_path = (job.path.empty? ? 
-                            ::File.join($local_top, '.orefs', e.name + '.gpg') :
-                            ::File.join($local_top, job.path, '.orefs', e.name + '.gpg'))
+                            ::File.join($local_top, '.odisk', e.name + '.gpg') :
+                            ::File.join($local_top, job.path, '.odisk', e.name + '.gpg'))
             @copy_queue.add_method(:download, remote + '.gpg', encrypt_path, local)
           else
             @copy_queue.add_method(:download, remote, local, nil)
@@ -191,7 +191,7 @@ module ODisk
       @fixer.ask(:collect, stat_job, :planner) unless @fixer.nil?
     end
 
-    def process_sync(job, orefs_dir)
+    def process_sync(job, odisk_dir)
       dirs = []
       job.current_digest.entries.each { |e| dirs << e.name unless !e.is_a?(::ODisk::Dir) || dirs.include?(e.name) }
       job.remote_digest.entries.each { |e| dirs << e.name unless !e.is_a?(::ODisk::Dir) || dirs.include?(e.name) }
@@ -205,7 +205,7 @@ module ODisk
       #puts "*** steps for #{job.path}: #{steps}"
       return if steps.nil?
 
-      Oj.to_file(::File.join(orefs_dir, 'digest.old.json'), job.previous_digest, indent: 2) unless job.previous_digest.nil?
+      Oj.to_file(::File.join(odisk_dir, 'digest.old.json'), job.previous_digest, indent: 2) unless job.previous_digest.nil?
       nrh = {} # fill with new digest entries for remote
       nlh = {} # fill with new digest entries for local
       full_job_path = job.path.empty? ? $local_top : ::File.join($local_top, job.path)
@@ -227,8 +227,8 @@ module ODisk
           local = ::File.join($local_top, path)
           remote = ::File.join($remote.dir, path)
           encrypt_path = (job.path.empty? ? 
-                          ::File.join($local_top, '.orefs', s.name + '.gpg') :
-                          ::File.join($local_top, job.path, '.orefs', s.name + '.gpg'))
+                          ::File.join($local_top, '.odisk', s.name + '.gpg') :
+                          ::File.join($local_top, job.path, '.odisk', s.name + '.gpg'))
           if Step::REMOTE == s.master
             if $remote.encrypt?
               @copy_queue.add_method(:download, remote + '.gpg', encrypt_path, local)
@@ -267,10 +267,10 @@ module ODisk
       nld.entries = nlh.values
 
       job.new_digest = nrd
-      remote_digest_path = ::File.join(orefs_dir, 'digest.remote.json')
-      Oj.to_file(::File.join(orefs_dir, 'digest.json'), nld, indent: 2)
+      remote_digest_path = ::File.join(odisk_dir, 'digest.remote.json')
+      Oj.to_file(::File.join(odisk_dir, 'digest.json'), nld, indent: 2)
       Oj.to_file(remote_digest_path, job.new_digest, indent: 2)
-      path = job.path.empty? ? ::File.join('.orefs', 'digest.json') : ::File.join(job.path, '.orefs', 'digest.json')
+      path = job.path.empty? ? ::File.join('.odisk', 'digest.json') : ::File.join(job.path, '.odisk', 'digest.json')
       @copy_queue.add_method(:upload, remote_digest_path, ::File.join($remote.dir, path)) unless Step::REMOTE == $master
 
       stat_job.digest = nld

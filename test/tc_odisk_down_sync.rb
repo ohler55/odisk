@@ -2,18 +2,18 @@
 # encoding: UTF-8
 
 $: << File.dirname(__FILE__)
-require 'orefs_test_helpers'
+require 'odisk_test_helpers'
 
 require 'oj'
 
-class OrefsTest < ::Test::Unit::TestCase
+class ODiskTest < ::Test::Unit::TestCase
 
-  def test_orefs_download
+  def test_odisk_download
     create_top_dir()
     `rm -rf #{$remote_top}`
     #Net::SSH.start(remote.host, remote.user) { |ssh| ssh.exec!("rm -rf #{$remote_top}") }
 
-    out = run_orefs_sync('')
+    out = run_odisk('-s')
     if $debug
       puts out
     else
@@ -23,15 +23,15 @@ class OrefsTest < ::Test::Unit::TestCase
     top2 = ::File.join($local_dir, 'top2')
     `rm -rf "#{top2}"`
 
-    out = run_orefs_sync('', top2)
+    out = run_odisk('-s', top2)
     if $debug
       puts out
     else
       assert_equal('', out)
     end
-    diffs = ::Orefs::Diff.dir_diff($local_top, top2, true)
+    diffs = ::ODisk::Diff.dir_diff($local_top, top2, true)
     #puts "*** diffs: #{diffs.values.join('')}"
     assert_equal({}, diffs)
   end
 
-end # OrefsTest
+end # ODiskTest

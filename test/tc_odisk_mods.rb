@@ -2,17 +2,17 @@
 # encoding: UTF-8
 
 $: << File.dirname(__FILE__)
-require 'orefs_test_helpers'
+require 'odisk_test_helpers'
 
 require 'oj'
 
-class OrefsTest < ::Test::Unit::TestCase
+class ODiskTest < ::Test::Unit::TestCase
 
-  def test_orefs_mods
+  def test_odisk_mods
     top = create_top_dir()
     `rm -rf #{$remote_top}`
 
-    out = run_orefs_sync('')
+    out = run_odisk('-s')
     if $debug
       puts %{--------------------------------------------------------------------------------
 Copy top to remote}
@@ -23,7 +23,7 @@ Copy top to remote}
     # now create a new local and verify the new and old are the same
     top2 = ::File.join($local_dir, 'top2')
     `rm -rf "#{top2}"`
-    out = run_orefs_sync('', top2)
+    out = run_odisk('-s', top2)
     if $debug
       puts %{--------------------------------------------------------------------------------
 Copy remote to top2}
@@ -31,7 +31,7 @@ Copy remote to top2}
     else
       assert_equal('', out)
     end
-    diffs = ::Orefs::Diff.dir_diff($local_top, top2, true)
+    diffs = ::ODisk::Diff.dir_diff($local_top, top2, true)
     assert_equal({}, diffs)
 
     # Modify child.txt content. It should be copied over to master and then top2.
@@ -41,7 +41,7 @@ Copy remote to top2}
     now = Time.now()
     ::File.utime(now, now, ::File.join(top, 'child', 'grand son'))
 
-    out = run_orefs_sync('', top)
+    out = run_odisk('-s', top)
     if $debug
       puts %{--------------------------------------------------------------------------------
 Modify child.txt and set date on 'child/grand son' then sync with remote}
@@ -50,7 +50,7 @@ Modify child.txt and set date on 'child/grand son' then sync with remote}
       assert_equal('', out)
     end
 
-    out = run_orefs_sync('', top2)
+    out = run_odisk('-s', top2)
     if $debug
       puts %{--------------------------------------------------------------------------------
 Sync top2}
@@ -60,13 +60,13 @@ Sync top2}
     end
     # top and top2 should be in sync with the new child.txt content
     assert_equal("This is some other text.\n", ::File.read(::File.join(top2, 'child.txt')))
-    diffs = ::Orefs::Diff.dir_diff(top, top2, true)
+    diffs = ::ODisk::Diff.dir_diff(top, top2, true)
     assert_equal({}, diffs)
 
     ::File.open(::File.join(top2, 'child', 'grand son'), 'w') { |f| f.write("This is the grandson.\n") }
     ::File.utime(now, now, ::File.join(top2, 'child', 'grand son'))
 
-    out = run_orefs_sync('', top2)
+    out = run_odisk('-s', top2)
     out_lines = out.split("\n")
     if $debug
       puts %{--------------------------------------------------------------------------------
@@ -79,10 +79,10 @@ Expecting 'child/grand son' to have a syncing conflict}
     end
     # top/child and top2/child digests should still match so that a rerun will
     # yield the same error.
-    assert_equal(::File.read(::File.join(top, 'child', '.orefs', 'digest.json')),
-                 ::File.read(::File.join(top, 'child', '.orefs', 'digest.json')))
+    assert_equal(::File.read(::File.join(top, 'child', '.odisk', 'digest.json')),
+                 ::File.read(::File.join(top, 'child', '.odisk', 'digest.json')))
 
-    out = run_orefs_sync('-m local', top2)
+    out = run_odisk('-m local -s', top2)
     if $debug
       puts %{--------------------------------------------------------------------------------
 Force top2 changes to remote}
@@ -90,7 +90,7 @@ Force top2 changes to remote}
     else
       assert_equal('', out)
     end
-    out = run_orefs_sync('-m remote', top)
+    out = run_odisk('-m remote -s', top)
     if $debug
       puts %{--------------------------------------------------------------------------------
 Force remote to top}
@@ -99,7 +99,7 @@ Force remote to top}
       assert_equal('', out)
     end
 
-    diffs = ::Orefs::Diff.dir_diff(top, top2, true)
+    diffs = ::ODisk::Diff.dir_diff(top, top2, true)
     assert_equal({}, diffs)
   end
 
@@ -122,4 +122,4 @@ Force remote to top}
      - verify conflict is detected
 =end
 
-end # OrefsTest
+end # ODiskTest

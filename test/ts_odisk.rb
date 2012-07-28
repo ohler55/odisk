@@ -15,12 +15,12 @@ end
 require 'test/unit'
 require 'oj'
 require 'opee'
-require 'orefs'
+require 'odisk'
 
-class OrefsTest < ::Test::Unit::TestCase
-end # OrefsTest
+class ODiskTest < ::Test::Unit::TestCase
+end # ODiskTest
 
-require 'tc_orefs_digest'
-require 'tc_orefs_first_sync'
-require 'tc_orefs_down_sync'
-require 'tc_orefs_mods'
+require 'tc_odisk_digest'
+require 'tc_odisk_first_sync'
+require 'tc_odisk_down_sync'
+require 'tc_odisk_mods'

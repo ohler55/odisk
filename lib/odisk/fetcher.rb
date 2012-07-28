@@ -31,7 +31,7 @@ module ODisk
 
     def fetch(job)
       top = (job.path.nil? || job.path.empty?) ? $remote.dir : ::File.join($remote.dir, job.path)
-      path = ::File.join(top, '.orefs', 'digest.json')
+      path = ::File.join(top, '.odisk', 'digest.json')
       ::Opee::Env.info("fetch digest \"#{path}\"")
       @ftp = Net::SFTP.start($remote.host, $remote.user) if @ftp.nil?
       begin
