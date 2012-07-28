@@ -1,37 +1,37 @@
-OREFS
+oDisk
 =====
 
-Open Remote Encrypted File Synchronization
+Remote Encrypted File Synchronization, oDisk
 
-Orefs is a file synchronization application. The need for Orefs came from the
-discontinuation of Apple's iDisk. Orefs provides a means to backup to a remote
-host. Orefs encrypts and compresses backups to save space and provide a layer
+oDisk is a file synchronization application. The need for oDisk came from the
+discontinuation of Apple's iDisk. oDisk provides a means to backup to a remote
+host. oDisk encrypts and compresses backups to save space and provide a layer
 of security not found in iDisk or other backup schemes. Backups are stored as
 individual files to provide finer granularity in recover if everything else
 falls apart.
 
-Orefs is also a demonstration of the [Opee](http://www.ohler.com/opee) gem
+oDisk is also a demonstration of the [Opee](http://www.ohler.com/opee) gem
 which utilizes an alternative approach to dealing with multiple threads.
 
 ## <a name="source">Source</a>
 
-*GitHub* *repo*: https://github.com/ohler55/orefs
+*GitHub* *repo*: https://github.com/ohler55/odisk
 
-*RubyGems* *repo*: https://rubygems.org/gems/orefs
+*RubyGems* *repo*: https://rubygems.org/gems/odisk
 
 ## <a name="links">Links of Interest</a>
 
-[Object-based Parallel Evaluation Environment](http://www.ohler.com/opee) the gem Orefs is built on.
+[Object-based Parallel Evaluation Environment](http://www.ohler.com/opee) the gem oDisk is built on.
 
 ## <a name="release">Release Notes</a>
 
-### Release 0.1.3
+### Release 0.2.0
 
- - Fixed problems with mismatch between digest and backed up files.
+ - Renamed Orefs to oDisk.
 
 # Plans and Notes
 
-Orefs has only recently been opened up for public viewing. It is barely ready
+oDisk has only recently been opened up for public viewing. It is barely ready
 for use. I am using it to backup some financial records but I am also keeping
 copies on more than one computer in case something fails. So far the basic
 backup functionality works with backups encrypted and compressed on a remote
@@ -84,7 +84,7 @@ GnuPG must be installed. It can be down loaded from
 [GnuPG.org](http://www.gnupg.org). Follow the instruction on
 [GnuPG.org](http://www.gnupg.org) site for installation.
 
-Orefs is now ready to use. ssh and sftp must be running on the remote site and
+oDisk is now ready to use. ssh and sftp must be running on the remote site and
 credentials must be installed so that the user is not prompted for a password
 when using ssh or sftp.
 
