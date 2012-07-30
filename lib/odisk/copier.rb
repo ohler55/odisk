@@ -1,5 +1,6 @@
 
 module ODisk
+  # Provides upload and download functionality using sftp and ssh on a single connection.
   class Copier < ::Opee::Actor
 
     def initialize(options={})

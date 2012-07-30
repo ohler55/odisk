@@ -1,5 +1,6 @@
 
 module ODisk
+  # Encrypts and decrypts file using GnuPG.
   class Crypter < ::Opee::Actor
 
     def initialize(options={})

@@ -2,6 +2,8 @@
 require 'etc'
 
 module ODisk
+  # Creates a Digest Object for specified directories and passes on the result
+  # to a Opee::Collector.
   class Digester < ::Opee::Actor
 
     def initialize(options={})

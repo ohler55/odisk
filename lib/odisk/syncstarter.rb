@@ -1,5 +1,6 @@
 
 module ODisk
+  # Initiates the synchronization of a directory.
   class SyncStarter < ::Opee::Actor
 
     def initialize(options={})

@@ -2,6 +2,10 @@
 require 'oj'
 
 module ODisk
+  # The Planner collects input in the form of Digests from a Digester and a
+  # Fetcher and then determines what actions are necessary to synchronize a
+  # directory. The Planner then asks Copiers and Crypters to perform the
+  # synchronization operations.
   class Planner < ::Opee::Collector
 
     def initialize(options={})

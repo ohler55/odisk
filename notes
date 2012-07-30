@@ -9,3 +9,5 @@
 
 - add option to verify remote
  - makes sure there is a file for each item in the digest
+
+- make sure all files are copied/ftp as binary

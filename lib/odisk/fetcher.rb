@@ -9,6 +9,9 @@ end
 require 'oj'
 
 module ODisk
+  # Fetches a remote Digest JSON document and creates a Digest Object from
+  # it. That Digest is then passed on to a Opee::Collector.
+
   class Fetcher < ::Opee::Actor
 
     def initialize(options={})

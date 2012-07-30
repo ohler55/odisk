@@ -1,5 +1,7 @@
 
 module ODisk
+  # Sets the owner, group, permissions, and symlink for files and directories
+  # after files have been downloaded and decrypted.
   class StatFixer < ::Opee::Collector
 
     def initialize(options={})
