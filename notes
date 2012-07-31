@@ -11,3 +11,5 @@
  - makes sure there is a file for each item in the digest
 
 - make sure all files are copied/ftp as binary
+ - test with UTF-8 file names to make sure the digests get copied
+  - if a problem then use the Oj ascii_only option

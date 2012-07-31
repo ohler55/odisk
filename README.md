@@ -65,7 +65,7 @@ know when you run into bugs.
    - comp, crypt, and transfer send status to progress actor
   - Optional terminal display
 
- - Support backgroup application with web front end (much later)
+ - Support background application with web front end (much later)
 
 ## Installation
 
