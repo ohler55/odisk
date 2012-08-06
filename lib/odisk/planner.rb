@@ -134,7 +134,6 @@ module ODisk
       # TBD if they are the same then don't bother
       Oj.to_file(::File.join(odisk_dir, 'digest.old.json'), job.previous_digest, indent: 2) unless job.previous_digest.nil?
       Oj.to_file(::File.join(odisk_dir, 'digest.json'), job.new_digest, indent: 2)
-
       # get the transfers going for all files
       job.new_digest.entries.each do |e|
         path = job.path.empty? ? e.name : ::File.join(job.path, e.name)
@@ -257,9 +256,7 @@ module ODisk
           nrh[e.name] = e
           nlh[e.name] = e
         when Step::LINK
-          if Step::REMOTE == s.master
-            #TBD create link
-          end
+          # Handled in StatFixer
         when Step::ERROR
           # TBD
         end

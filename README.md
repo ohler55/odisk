@@ -25,9 +25,9 @@ which utilizes an alternative approach to dealing with multiple threads.
 
 ## <a name="release">Release Notes</a>
 
-### Release 0.2.0
+### Release 0.2.1
 
- - Renamed Orefs to oDisk.
+ - Fixed symlink sync.
 
 # Plans and Notes
 
