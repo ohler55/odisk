@@ -1,0 +1,104 @@
+#!/usr/bin/env ruby -wW1
+# encoding: UTF-8
+
+while (i = ARGV.index('-I'))
+  x,path = ARGV.slice!(i, 2)
+  $: << path
+end
+
+# TBD tmp for testing
+$: << ::File.join(::File.dirname(__FILE__), "../../oj/lib")
+$: << ::File.join(::File.dirname(__FILE__), "../../oj/ext")
+$: << ::File.join(::File.dirname(__FILE__), "../../opee/lib")
+$: << ::File.join(::File.dirname(__FILE__), "../lib")
+
+require 'optparse'
+begin
+  v = $VERBOSE
+  $VERBOSE = false
+  require 'net/ssh'
+  require 'net/sftp'
+  $VERBOSE = v
+end
+require 'opee'
+require 'oj'
+require 'odisk'
+
+$verbose = Logger::WARN
+$dry_run = false
+$dir = '.'
+$master = nil
+$remote = ::ODisk::Remote.new()
+
+opts = OptionParser.new('Usage: odisk_forget [options] <local_directory> <relative_forget_path>')
+opts.on('-s', 'decrease verbosity')                 { $verbose += 1 unless 5 == $verbose }
+opts.on('-v', 'increase verbosity')                 { $verbose -= 1 unless 0 == $verbose }
+opts.on('-n', 'dry run / no modifications')         { $dry_run = true }
+opts.on('-r', '--remote [user@host:dir:pass_file]',
+        String, 'remote user, host, directory, passphrase file for gpg')  { |r|
+  $remote.update(r)
+}
+opts.on('-h', '--help', 'Show this display')        { puts opts.help; Process.exit!(0) }
+dirs = opts.parse(ARGV)
+
+if 2 != dirs.size
+  puts opts.help
+  Process.exit!(0)
+end
+$local_top = ::File.expand_path(dirs[0])
+$forget_me = dirs[1] # relative path from top
+
+unless ODisk.gather_remote_info($local_top, $remote)
+  puts opts.help
+  Process.exit!(0)
+end
+$remote.pass_file = nil if $plain
+
+Thread.current[:name] = 'main'
+::Opee::Env.logger.formatter = proc { |s,t,p,m|
+  s = '' if s.nil?
+  "#{s[0]} [#{t.strftime('%Y-%m-%dT%H:%M:%S.%6N')} ##{p}]: #{m}\n"
+}
+::Opee::Env.logger.severity = $verbose
+
+if Logger::INFO >= $verbose
+  if $digests_only
+    ::Opee::Env.info(%{
+  Generate Local Digests
+    local directory:  #{::File.expand_path($local_top)}
+})
+  else
+    ::Opee::Env.info(%{
+  Forget "#{$forget_me}"
+    remote host:      #{$remote.host}
+    remote user:      #{$remote.user}
+    remote directory: #{$remote.dir}
+    local:            #{::File.expand_path($local_top)}
+    dry run:          #{$dry_run}
+})
+  end
+end
+
+# If $local_top/.odisk/remote does not exist or is different that what is in $remote, replace it.
+remote_str = $remote.to_s
+top_remote_path = ::File.join($local_top, '.odisk', 'remote')
+if !::File.file?(top_remote_path) || ::File.read(top_remote_path).strip() != remote_str
+  ::Opee::Env.info("Writing #{top_remote_path}")
+  unless $dry_run
+  `mkdir -p #{::File.join($local_top, '.odisk')}`
+  ::File.open(top_remote_path, 'w') { |f| f.write(remote_str + "\n") }
+  end
+end
+
+# TBD determine parent dir of forget_me
+
+# TBD remove forget_me from local digest
+
+# TBD download remote digest
+
+# TBD remove forget_me from remote digest and uplaod
+
+# TBD remove forget_me from remote
+
+
+puts "*** TBD not yet implemented"

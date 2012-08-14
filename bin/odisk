@@ -67,39 +67,11 @@ if 1 != dirs.size
 end
 $local_top = ::File.expand_path(dirs[0])
 
-# Walk up the directory tree looking for .odisk directories and a remote.json
-# in that directory. If the directory does not exist then stop the walk. If
-# not found check the ~/.odisk/remotes.json file for a matching top.
-top = $local_top
-if $ruser.nil? || $rhost.nil? || $rtop.nil?
-  while ::File.directory?(::File.join(top, '.odisk'))
-    rfile = ::File.join(top, '.odisk', 'remote')
-    if ::File.file?(rfile)
-      rstr = ::File.read(rfile).strip()
-      #$remote.pass_file = ::File.expand_path($remote.pass_file) unless $remote.pass_file.nil? || $remote.pass_file.empty?
-      orig_pass_file = $remote.pass_file
-      $remote.update(rstr)
-      $remote.pass_file = ::File.expand_path($remote.pass_file) unless $remote.pass_file.nil? || $remote.pass_file.empty?
-      if !$remote.dir.nil? && !$remote.dir.empty? && top != $local_top
-        $remote.dir = $remote.dir + $local_top[top.size..-1]
-      end
-      if $remote.pass_file != orig_pass_file && !::File.file?($remote.pass_file)
-        $remote.pass_file = ::File.join(top, '.odisk', $remote.pass_file)
-      end
-      break
-    end
-    top = ::File.dirname(top)
-  end
-end
-
-ODisk.info_from_remotes($local_top, $remote) unless $remote.complete?
-$remote.user = ENV['USER'] if $remote.user.nil?
-$remote.pass_file = nil if $plain
-unless $remote.okay?
-  puts "*** user@host:top_dir not specified on command line, in local .odisk/remote file, or in ~/.odisk/remotes"
+unless ODisk.gather_remote_info($local_top, $remote)
   puts opts.help
   Process.exit!(0)
 end
+$remote.pass_file = nil if $plain
 
 Thread.current[:name] = 'main'
 ::Opee::Env.logger.formatter = proc { |s,t,p,m|

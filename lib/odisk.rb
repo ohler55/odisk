@@ -1,6 +1,41 @@
 
 module ODisk
 
+  # Walk up the directory tree looking for .odisk directories and a
+  # remote.json in that directory. If the directory does not exist then stop
+  # the walk. If not found check the ~/.odisk/remotes.json file for a matching
+  # top.
+  def self.gather_remote_info(local_dir, remote)
+    top = local_dir
+    if remote.user.nil? || remote.host.nil? || remote.dir.nil?
+      while ::File.directory?(::File.join(top, '.odisk'))
+        rfile = ::File.join(top, '.odisk', 'remote')
+        if ::File.file?(rfile)
+          rstr = ::File.read(rfile).strip()
+          #remote.pass_file = ::File.expand_path(remote.pass_file) unless remote.pass_file.nil? || remote.pass_file.empty?
+          orig_pass_file = remote.pass_file
+          remote.update(rstr)
+          remote.pass_file = ::File.expand_path(remote.pass_file) unless remote.pass_file.nil? || remote.pass_file.empty?
+          if !remote.dir.nil? && !remote.dir.empty? && top != $local_top
+            remote.dir = remote.dir + local_dir[top.size..-1]
+          end
+          if remote.pass_file != orig_pass_file && !::File.file?(remote.pass_file)
+            remote.pass_file = ::File.join(top, '.odisk', remote.pass_file)
+          end
+          break
+        end
+        top = ::File.dirname(top)
+      end
+    end
+    info_from_remotes(local_dir, remote) unless remote.complete?
+    remote.user = ENV['USER'] if remote.user.nil?
+    unless remote.okay?
+      puts "*** user@host:top_dir not specified on command line, in local .odisk/remote file, or in ~/.odisk/remotes"
+      return false
+    end
+    true
+  end
+
   def self.info_from_remotes(local_dir, remote)
     orig_pass_file = remote.pass_file
     local_dir = ::File.expand_path(local_dir)

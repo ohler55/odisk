@@ -3,12 +3,23 @@
 ^c^d hide subtree
 ^c^s show subtree
 
-- home page
- - write article on orefs and use of opee
-  - include diagram
+- odisk_forget
+ - remove digest entries on local and remote as well as copies on remote
+ - test
+  - verify digest is modified and remote files are gone
 
-- add option to verify remote
- - makes sure there is a file for each item in the digest
+- odisk_remove
+ - rm on both local and remote
+ - create entry in digest for removal
+ - when syncing, remove
+
+- odisk_move
+ - how to deal with multiple threads and different directories?
+
+- ignore
+ - file patterns
+  - can include dir
+
 
 - make sure all files are copied/ftp as binary
  - test with UTF-8 file names to make sure the digests get copied

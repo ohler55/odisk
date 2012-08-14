@@ -40,10 +40,10 @@ files has not been implemented yet and changing ownership or mode only take
 effect if the file is touched as well. Feel free to give it a try and let me
 know when you run into bugs.
 
- - Support exclusion of file and directories
-  - specify on command line and create .odisk/exclude file
+ - Support ignore of file and directories
+  - specify on command line and create .odisk/ignore file
    - use ::File.fnmatch(pattern, path, ::File::FNM_DOTMATCH)
-  - pass array of excludes to digest creation
+  - pass array of ignores to digest creation
    - loosen up current restriction on any file that begins with .
 
  - Support file removal
@@ -54,7 +54,7 @@ know when you run into bugs.
 
  - Handle changes in mode, owner, and group
   - Compare to previous digest to detect changes
-   - File modification times are not changes by mode, owner, or group changes
+   - File modification times are not changed by mode, owner, or group changes
   - Note conflicts if modifications are more recent than remote
    - Use a script to pick change or keep local version
 
