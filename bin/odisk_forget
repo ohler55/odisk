@@ -30,7 +30,12 @@ $dir = '.'
 $master = nil
 $remote = ::ODisk::Remote.new()
 
-opts = OptionParser.new('Usage: odisk_forget [options] <local_directory> <relative_forget_path>')
+opts = OptionParser.new(%{Usage: odisk_forget [options] <local_directory> <relative_forget_path>
+
+Will remove data for the file or directory specified on the remote server. The local file or directory
+will not be removed but the local digest will no longer includes that entry. This make the file or
+directory look new as far as oDisk is concerned.
+})
 opts.on('-s', 'decrease verbosity')                 { $verbose += 1 unless 5 == $verbose }
 opts.on('-v', 'increase verbosity')                 { $verbose -= 1 unless 0 == $verbose }
 opts.on('-n', 'dry run / no modifications')         { $dry_run = true }
@@ -90,15 +95,28 @@ if !::File.file?(top_remote_path) || ::File.read(top_remote_path).strip() != rem
   end
 end
 
-# TBD determine parent dir of forget_me
+path = ::File.join($local_top, $forget_me)
+local_digest_path = ::File.join(::File.dirname(path), '.odisk', 'digest.json')
+forget_name = ::File.basename(path)
+remote_path = ::File.join($remote.dir, $forget_me)
+remote_digest_path = ::File.join(::File.dirname(remote_path), '.odisk', 'digest.json')
 
-# TBD remove forget_me from local digest
+# Remove forget_me from local digest.
+digest = Oj.load_file(local_digest_path, mode: :object)
+digest.delete(forget_name)
+Oj.to_file(local_digest_path, digest, indent: 2) unless $dry_run
 
-# TBD download remote digest
+# Remove forget_me from remote digest
+Net::SSH.start($remote.host, $remote.user) do |ssh|
+  ssh.exec!(%{rm -rf "#{remote_path}.gpg"})
+  ssh.exec!(%{rm -rf "#{remote_path}"})
+end
 
-# TBD remove forget_me from remote digest and uplaod
-
-# TBD remove forget_me from remote
-
-
-puts "*** TBD not yet implemented"
+# Update the remote digest by removing the forget_me entry.
+Net::SFTP.start($remote.host, $remote.user) do |ftp|
+  json = ftp.download!(remote_digest_path)
+  digest = Oj.load(json, mode: :object)
+  digest.delete(forget_name)
+  json = Oj.dump(digest, indent: 2)
+  ftp.open!(remote_digest_path, 'w') { |res| ftp.write!(res[:handle], 0, json) }
+end

@@ -25,9 +25,9 @@ which utilizes an alternative approach to dealing with multiple threads.
 
 ## <a name="release">Release Notes</a>
 
-### Release 0.2.1
+### Release 0.2.2
 
- - Fixed symlink sync.
+ - Added odisk_forget which removes remote entries causing a file or directory to look like a new file or directory.
 
 # Plans and Notes
 

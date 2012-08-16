@@ -29,8 +29,13 @@ $remote_top = ::File.join($remote_dir, 'top')
 
 def run_odisk(options='', top=nil)
   top = $local_top if top.nil?
-  #puts %{#{::File.dirname($here)}/bin/odisk -r #{ENV['USER']}@localhost:#{$remote_top}:#{::File.join($here, 'test.pass')} #{options} #{$debug ? '-v' : ''} #{top}}
-  `#{::File.dirname($here)}/bin/odisk -r #{ENV['USER']}@localhost:#{$remote_top}:#{::File.join($here, 'test.pass')} #{options} #{$debug ? '-v' : ''} #{top}`
+  #puts %{#{::File.dirname($here)}/bin/odisk -r #{ENV['USER']}@localhost:#{$remote_top}:#{::File.join($here, 'test.pass')} #{options} #{$debug ? '-v' : ''} "#{top}"}
+  `#{::File.dirname($here)}/bin/odisk -r #{ENV['USER']}@localhost:#{$remote_top}:#{::File.join($here, 'test.pass')} #{options} #{$debug ? '-v' : ''} "#{top}"`
+end
+
+def run_odisk_forget(options='', top=nil, forget=nil)
+  top = $local_top if top.nil?
+  `#{::File.dirname($here)}/bin/odisk_forget -r #{ENV['USER']}@localhost:#{$remote_top}:#{::File.join($here, 'test.pass')} #{options} #{$debug ? '-v' : ''} "#{top}" "#{forget}"`
 end
 
 def mode_to_i(ms)
