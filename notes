@@ -3,18 +3,20 @@
 ^c^d hide subtree
 ^c^s show subtree
 
-- odisk_forget
- - remove digest entries on local and remote as well as copies on remote
- - test
-  - verify digest is modified and remote files are gone
-
+- sync -m remote
+ - delete when missing in remote but in local
+ - write test 
+ 
 - odisk_remove
  - rm on both local and remote
  - create entry in digest for removal
  - when syncing, remove
-
-- odisk_move
- - how to deal with multiple threads and different directories?
+ - test
+  - remove from local
+  - verify secondary local file gets removed
+ - edge
+  - what if secondary local has changed - do not remove, error
+  - 
 
 - ignore
  - file patterns

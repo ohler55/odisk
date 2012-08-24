@@ -33,12 +33,18 @@ $plain = false
 $remote = ::ODisk::Remote.new()
 $crypter_count = 2
 $copier_count = 4
+$careful = false
 
-opts = OptionParser.new('Usage: odisk [options] <local_directory>')
+opts = OptionParser.new(%{Usage: odisk [options] <local_directory>
+
+Synchronizes a local directory with a remote directory. The remote directory
+is encrypted and compressed.
+})
 opts.on('-s', 'decrease verbosity')                 { $verbose += 1 unless 5 == $verbose }
 opts.on('-v', 'increase verbosity')                 { $verbose -= 1 unless 0 == $verbose }
 opts.on('-d', 'generate digests only')              { $digests_only = true }
 opts.on('-u', 'unencrypted or plain remote files')  { $plain = true }
+opts.on('-c', 'careful mode, no local removes')     { $careful = true }
 opts.on('-n', 'dry run / no modifications')         { $dry_run = true }
 opts.on('-r', '--remote [user@host:dir:pass_file]',
         String, 'remote user, host, directory, passphrase file for gpg')  { |r|
