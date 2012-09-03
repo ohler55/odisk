@@ -5,7 +5,9 @@
 
 - sync -m remote
  - delete when missing in remote but in local
- - write test 
+ - write test
+  - how to deal with dir removal without conflict on threads
+   - have to do it in planner
  
 - odisk_remove
  - rm on both local and remote

@@ -196,8 +196,15 @@ module ODisk
 
     def process_sync(job, odisk_dir)
       dirs = []
-      job.current_digest.entries.each { |e| dirs << e.name unless !e.is_a?(::ODisk::Dir) || dirs.include?(e.name) }
-      job.remote_digest.entries.each { |e| dirs << e.name unless !e.is_a?(::ODisk::Dir) || dirs.include?(e.name) }
+      # TBD check for rm flag
+      if Step::REMOTE == $master
+        job.remote_digest.entries.each { |e| dirs << e.name unless !e.is_a?(::ODisk::Dir) || dirs.include?(e.name) }
+      elsif Step::LOCAL == $master
+        job.current_digest.entries.each { |e| dirs << e.name unless !e.is_a?(::ODisk::Dir) || dirs.include?(e.name) }
+      else
+        job.remote_digest.entries.each { |e| dirs << e.name unless !e.is_a?(::ODisk::Dir) || dirs.include?(e.name) }
+        job.current_digest.entries.each { |e| dirs << e.name unless !e.is_a?(::ODisk::Dir) || dirs.include?(e.name) }
+      end
       dirs.each do |dir|
         path = job.path.empty? ? dir : ::File.join(job.path, dir)
         local = ::File.join($local_top, path)
@@ -250,7 +257,16 @@ module ODisk
           nrh[e.name] = e
           nlh[e.name] = e
         when Step::REMOVE
-          # TBD
+          path = job.path.empty? ? s.name : ::File.join(job.path, s.name)
+          if Step::REMOTE == s.master
+            remote = ::File.join($remote.dir, path)
+            @copy_queue.add_method(:remove_remote, remote)
+            nrh.delete(s.name)
+          else
+            local = ::File.join($local_top, path)
+            @copy_queue.add_method(:remove_local, local)
+            nlh.delete(s.name)
+          end
         when Step::DIGEST
           e = (Step::REMOTE == s.master) ? job.remote_digest[s.name] : job.current_digest[s.name]
           nrh[e.name] = e

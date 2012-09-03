@@ -1,3 +1,10 @@
+begin
+  v = $VERBOSE
+  $VERBOSE = false
+  require 'net/ssh'
+  require 'net/sftp'
+  $VERBOSE = v
+end
 
 module ODisk
   # Provides upload and download functionality using sftp and ssh on a single connection.
@@ -68,6 +75,16 @@ module ODisk
       ::Opee::Env.info("creating remote dir \"#{dir}\"")
       @ssh = Net::SSH.start($remote.host, $remote.user) if @ssh.nil?
       out = @ssh.exec!(%{mkdir -p "#{dir}"})
+      raise out unless out.nil? || out.strip().empty?
+    end
+
+    def remove_local(path)
+      `rm -rf "#{path}"`
+    end
+
+    def remove_remote(path)
+      @ssh = Net::SSH.start($remote.host, $remote.user) if @ssh.nil?
+      out = @ssh.exec!(%{rm -rf "#{path}" "#{path}.gpg"})
       raise out unless out.nil? || out.strip().empty?
     end
 
