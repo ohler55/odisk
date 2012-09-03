@@ -73,19 +73,24 @@ module ODisk
 
     def assure_dirs_exist(dir)
       ::Opee::Env.info("creating remote dir \"#{dir}\"")
-      @ssh = Net::SSH.start($remote.host, $remote.user) if @ssh.nil?
-      out = @ssh.exec!(%{mkdir -p "#{dir}"})
-      raise out unless out.nil? || out.strip().empty?
+      unless $dry_run
+        @ssh = Net::SSH.start($remote.host, $remote.user) if @ssh.nil?
+        out = @ssh.exec!(%{mkdir -p "#{dir}"})
+        raise out unless out.nil? || out.strip().empty?
+      end
     end
 
     def remove_local(path)
-      `rm -rf "#{path}"`
+      `rm -rf "#{path}"` unless $dry_run
     end
 
     def remove_remote(path)
-      @ssh = Net::SSH.start($remote.host, $remote.user) if @ssh.nil?
-      out = @ssh.exec!(%{rm -rf "#{path}" "#{path}.gpg"})
-      raise out unless out.nil? || out.strip().empty?
+      ::Opee::Env.info("removing remote dir \"#{dir}\"")
+      unless $dry_run
+        @ssh = Net::SSH.start($remote.host, $remote.user) if @ssh.nil?
+        out = @ssh.exec!(%{rm -rf "#{path}" "#{path}.gpg"})
+        raise out unless out.nil? || out.strip().empty?
+      end
     end
 
   end # Copier
