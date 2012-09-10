@@ -43,8 +43,12 @@ module ODisk
           ::Opee::Env.warn("Uploaded \"#{local}\"")
         rescue Net::SFTP::StatusException => e
           if Net::SFTP::Constants::StatusCodes::FX_NO_SUCH_FILE == e.code
-            assure_dirs_exist(::File.dirname(remote))
-            retry
+            begin
+              assure_dirs_exist(::File.dirname(remote))
+              retry
+            rescue Exception => e2
+              ::Opee::Env.error("Upload of \"#{local}\" failed: #{e2.class}: #{e2.message}")
+            end
           else
             ::Opee::Env.error("Upload of \"#{local}\" failed: #{e.class}: (#{e.code}) #{e.description}\n #{e.text}\n #{e.response}")
           end
@@ -71,25 +75,26 @@ module ODisk
       @copy_queue.ask(:ready, self)
     end
 
+    def remove_local(path)
+      `rm -rf "#{path}"` unless $dry_run
+      ::Opee::Env.warn("Removed local \"#{path}\"")
+    end
+
+    def remove_remote(path)
+      unless $dry_runb
+        @ssh = Net::SSH.start($remote.host, $remote.user) if @ssh.nil?
+        out = @ssh.exec!(%{rm -rf "#{path}" "#{path}.gpg"})
+        raise out unless out.nil? || out.strip().empty?
+      end
+      ::Opee::Env.warn("Removed remote \"#{path}\"")
+    end
+
     def assure_dirs_exist(dir)
       ::Opee::Env.info("creating remote dir \"#{dir}\"")
       unless $dry_run
         @ssh = Net::SSH.start($remote.host, $remote.user) if @ssh.nil?
         out = @ssh.exec!(%{mkdir -p "#{dir}"})
-        raise out unless out.nil? || out.strip().empty?
-      end
-    end
-
-    def remove_local(path)
-      `rm -rf "#{path}"` unless $dry_run
-    end
-
-    def remove_remote(path)
-      ::Opee::Env.info("removing remote dir \"#{dir}\"")
-      unless $dry_run
-        @ssh = Net::SSH.start($remote.host, $remote.user) if @ssh.nil?
-        out = @ssh.exec!(%{rm -rf "#{path}" "#{path}.gpg"})
-        raise out unless out.nil? || out.strip().empty?
+        raise 'Remote ' + out unless out.nil? || out.strip().empty?
       end
     end
 

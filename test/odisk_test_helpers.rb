@@ -23,9 +23,12 @@ end
 
 $here = ::File.expand_path(::File.dirname(__FILE__))
 $local_dir = ::File.join($here, 'local')
-$local_top = ::File.join($local_dir, 'top')
 $remote_dir = ::File.join($here, 'remote')
+::Dir.mkdir($local_dir) unless ::Dir.exists?($local_dir)
+::Dir.mkdir($remote_dir) unless ::Dir.exists?($remote_dir)
+$local_top = ::File.join($local_dir, 'top')
 $remote_top = ::File.join($remote_dir, 'top')
+
 
 def run_odisk(options='', top=nil)
   top = $local_top if top.nil?

@@ -108,8 +108,10 @@ Copy top to remote}
     assert(!::File.exists?(path), "#{path} was not removed, it should not have been")
   end
 
+  # TBD odisk_remove file
+  #  verify local and remote removed
+  #  verify sync on top2 also removes
 
-  # TBD explicit remove file
   # TBD explicit remove dir
   # TBD implicit sync 
 
