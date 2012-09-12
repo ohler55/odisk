@@ -1,0 +1,120 @@
+#!/usr/bin/env ruby -wW1
+# encoding: UTF-8
+
+while (i = ARGV.index('-I'))
+  x,path = ARGV.slice!(i, 2)
+  $: << path
+end
+
+# TBD tmp for testing
+$: << ::File.join(::File.dirname(__FILE__), "../../oj/lib")
+$: << ::File.join(::File.dirname(__FILE__), "../../oj/ext")
+$: << ::File.join(::File.dirname(__FILE__), "../../opee/lib")
+$: << ::File.join(::File.dirname(__FILE__), "../lib")
+
+require 'optparse'
+begin
+  v = $VERBOSE
+  $VERBOSE = false
+  require 'net/ssh'
+  require 'net/sftp'
+  $VERBOSE = v
+end
+require 'opee'
+require 'oj'
+require 'odisk'
+
+$verbose = Logger::WARN
+$dry_run = false
+$dir = '.'
+$master = nil
+$remote = ::ODisk::Remote.new()
+
+opts = OptionParser.new(%{Usage: odisk_remove [options] <local_directory> <relative_remove_path>
+
+Will remove data for the file or directory specified from the local file system as well as on the
+remote server. The path will also be marked indication that the file or directory should be removed
+from other local directories if that directory is synced with the remote site. To get rid of the
+remove flag for the path use the oDisk_cleanup command or sync with a local as master.
+})
+opts.on('-s', 'decrease verbosity')                 { $verbose += 1 unless 5 == $verbose }
+opts.on('-v', 'increase verbosity')                 { $verbose -= 1 unless 0 == $verbose }
+opts.on('-n', 'dry run / no modifications')         { $dry_run = true }
+opts.on('-r', '--remote [user@host:dir:pass_file]',
+        String, 'remote user, host, directory, passphrase file for gpg')  { |r|
+  $remote.update(r)
+}
+opts.on('-h', '--help', 'Show this display')        { puts opts.help; Process.exit!(0) }
+dirs = opts.parse(ARGV)
+
+if 2 != dirs.size
+  puts opts.help
+  Process.exit!(0)
+end
+$local_top = ::File.expand_path(dirs[0])
+$remove_me = dirs[1] # relative path from top
+
+#  TBD move this to odisk.rb
+unless ODisk.gather_remote_info($local_top, $remote)
+  puts opts.help
+  Process.exit!(0)
+end
+$remote.pass_file = nil if $plain
+
+Thread.current[:name] = 'remove'
+::Opee::Env.logger.formatter = proc { |s,t,p,m|
+  s = '' if s.nil?
+  "#{s[0]} [#{t.strftime('%Y-%m-%dT%H:%M:%S.%6N')} ##{p}]: #{m}\n"
+}
+::Opee::Env.logger.severity = $verbose
+
+if Logger::INFO >= $verbose
+  ::Opee::Env.info(%{
+  Remove "#{$remove_me}"
+    remote host:      #{$remote.host}
+    remote user:      #{$remote.user}
+    remote directory: #{$remote.dir}
+    local:            #{::File.expand_path($local_top)}
+    dry run:          #{$dry_run}
+})
+end
+
+# If $local_top/.odisk/remote does not exist or is different that what is in $remote, replace it.
+remote_str = $remote.to_s
+top_remote_path = ::File.join($local_top, '.odisk', 'remote')
+if !::File.file?(top_remote_path) || ::File.read(top_remote_path).strip() != remote_str
+  ::Opee::Env.info("Writing #{top_remote_path}")
+  unless $dry_run
+  `mkdir -p #{::File.join($local_top, '.odisk')}`
+  ::File.open(top_remote_path, 'w') { |f| f.write(remote_str + "\n") }
+  end
+end
+# TBD to here
+
+path = ::File.join($local_top, $remove_me)
+local_digest_path = ::File.join(::File.dirname(path), '.odisk', 'digest.json')
+remove_name = ::File.basename(path)
+remote_path = ::File.join($remote.dir, $remove_me)
+remote_digest_path = ::File.join(::File.dirname(remote_path), '.odisk', 'digest.json')
+
+# TBD remove file
+
+# Remove remove_me from local digest.
+digest = Oj.load_file(local_digest_path, mode: :object)
+digest.delete(remove_name)
+Oj.to_file(local_digest_path, digest, indent: 2) unless $dry_run
+
+# Remove remove_me from remote digest
+Net::SSH.start($remote.host, $remote.user) do |ssh|
+  ssh.exec!(%{rm -rf "#{remote_path}.gpg"})
+  ssh.exec!(%{rm -rf "#{remote_path}"})
+end
+
+# Update the remote digest by removing the remove_me entry.
+Net::SFTP.start($remote.host, $remote.user) do |ftp|
+  json = ftp.download!(remote_digest_path)
+  digest = Oj.load(json, mode: :object)
+  digest.delete(remove_name)
+  json = Oj.dump(digest, indent: 2)
+  ftp.open!(remote_digest_path, 'w') { |res| ftp.write!(res[:handle], 0, json) }
+end
