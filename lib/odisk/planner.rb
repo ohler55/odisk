@@ -54,16 +54,16 @@ module ODisk
           if le.class != re.class
             ::Opee::Env.error("Conflict syncing #{ld.top_path}/#{name}. Local and remote types do not match.")
             steps[name] = Step.new(name, Step::LOCAL, Step::ERROR)
+          elsif le.removed
+            ::Opee::Env.error("Unexpected digest entry for #{ld.top_path}/#{name}. The removed flag is sent in the local digest.")
+          elsif re.removed
+            steps[name] = Step.new(name, Step::LOCAL, Step::REMOVE)
           elsif le.is_a?(::ODisk::File) || le.is_a?(::ODisk::Link)
             op = le.is_a?(::ODisk::File) ? Step::COPY : Step::LINK
             if Step::LOCAL == master
               steps[name] = Step.new(name, Step::LOCAL, op) if le.is_a?(::ODisk::File)
             elsif Step::REMOTE == master
               steps[name] = Step.new(name, Step::REMOTE, op) if re.is_a?(::ODisk::File)
-            elsif le.removed
-              # TBD
-            elsif re.removed
-              # TBD
             elsif le.mtime > re.mtime
               pe = ph[name]
               if pe.nil? || pe.mtime == re.mtime
@@ -196,14 +196,20 @@ module ODisk
 
     def process_sync(job, odisk_dir)
       dirs = []
-      # TBD check for rm flag
       if Step::REMOTE == $master
         job.remote_digest.entries.each { |e| dirs << e.name unless !e.is_a?(::ODisk::Dir) || dirs.include?(e.name) }
       elsif Step::LOCAL == $master
         job.current_digest.entries.each { |e| dirs << e.name unless !e.is_a?(::ODisk::Dir) || dirs.include?(e.name) }
       else
-        job.remote_digest.entries.each { |e| dirs << e.name unless !e.is_a?(::ODisk::Dir) || dirs.include?(e.name) }
         job.current_digest.entries.each { |e| dirs << e.name unless !e.is_a?(::ODisk::Dir) || dirs.include?(e.name) }
+        job.remote_digest.entries.each do |e|
+          next unless e.is_a?(::ODisk::Dir)
+          if e.removed
+            dirs.delete(e.name)
+          else
+            dirs << e.name unless dirs.include?(e.name)
+          end
+        end
       end
       dirs.each do |dir|
         path = job.path.empty? ? dir : ::File.join(job.path, dir)

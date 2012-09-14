@@ -25,9 +25,11 @@ which utilizes an alternative approach to dealing with multiple threads.
 
 ## <a name="release">Release Notes</a>
 
-### Release 0.2.2
+### Release 0.2.3
 
- - Added odisk_forget which removes remote entries causing a file or directory to look like a new file or directory.
+ - Added odisk_forget which clears the local and remote digest of a specific file or directory.
+
+ - Added odisk_remove which marks a file or directory as removed so that all file or directory is removed from all local copies.
 
 # Plans and Notes
 
@@ -45,12 +47,6 @@ know when you run into bugs.
    - use ::File.fnmatch(pattern, path, ::File::FNM_DOTMATCH)
   - pass array of ignores to digest creation
    - loosen up current restriction on any file that begins with .
-
- - Support file removal
-  - Detect file removal based on previous digest or by calling a remove script
-  - Keep record of removals in digest
-  - Note conflicts if modifications are more recent that removal
-   - Use a script to pick remove or keep
 
  - Handle changes in mode, owner, and group
   - Compare to previous digest to detect changes

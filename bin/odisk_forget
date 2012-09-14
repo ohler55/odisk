@@ -59,7 +59,7 @@ unless ODisk.gather_remote_info($local_top, $remote)
 end
 $remote.pass_file = nil if $plain
 
-Thread.current[:name] = 'main'
+Thread.current[:name] = 'forget'
 ::Opee::Env.logger.formatter = proc { |s,t,p,m|
   s = '' if s.nil?
   "#{s[0]} [#{t.strftime('%Y-%m-%dT%H:%M:%S.%6N')} ##{p}]: #{m}\n"
@@ -67,13 +67,7 @@ Thread.current[:name] = 'main'
 ::Opee::Env.logger.severity = $verbose
 
 if Logger::INFO >= $verbose
-  if $digests_only
-    ::Opee::Env.info(%{
-  Generate Local Digests
-    local directory:  #{::File.expand_path($local_top)}
-})
-  else
-    ::Opee::Env.info(%{
+  ::Opee::Env.info(%{
   Forget "#{$forget_me}"
     remote host:      #{$remote.host}
     remote user:      #{$remote.user}
@@ -81,10 +75,9 @@ if Logger::INFO >= $verbose
     local:            #{::File.expand_path($local_top)}
     dry run:          #{$dry_run}
 })
-  end
 end
 
-# If $local_top/.odisk/remote does not exist or is different that what is in $remote, replace it.
+# If $local_top/.odisk/remote does not exist or is different than what is in $remote, replace it.
 remote_str = $remote.to_s
 top_remote_path = ::File.join($local_top, '.odisk', 'remote')
 if !::File.file?(top_remote_path) || ::File.read(top_remote_path).strip() != remote_str

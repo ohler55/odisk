@@ -79,7 +79,7 @@ if Logger::INFO >= $verbose
 })
 end
 
-# If $local_top/.odisk/remote does not exist or is different that what is in $remote, replace it.
+# If $local_top/.odisk/remote does not exist or is different than what is in $remote, replace it.
 remote_str = $remote.to_s
 top_remote_path = ::File.join($local_top, '.odisk', 'remote')
 if !::File.file?(top_remote_path) || ::File.read(top_remote_path).strip() != remote_str
@@ -89,7 +89,6 @@ if !::File.file?(top_remote_path) || ::File.read(top_remote_path).strip() != rem
   ::File.open(top_remote_path, 'w') { |f| f.write(remote_str + "\n") }
   end
 end
-# TBD to here
 
 path = ::File.join($local_top, $remove_me)
 local_digest_path = ::File.join(::File.dirname(path), '.odisk', 'digest.json')
@@ -97,24 +96,27 @@ remove_name = ::File.basename(path)
 remote_path = ::File.join($remote.dir, $remove_me)
 remote_digest_path = ::File.join(::File.dirname(remote_path), '.odisk', 'digest.json')
 
-# TBD remove file
+# Removed the local file.
+`rm -rf "#{path}"`
 
 # Remove remove_me from local digest.
 digest = Oj.load_file(local_digest_path, mode: :object)
 digest.delete(remove_name)
 Oj.to_file(local_digest_path, digest, indent: 2) unless $dry_run
 
-# Remove remove_me from remote digest
+# Removed the remote file or directory.
 Net::SSH.start($remote.host, $remote.user) do |ssh|
   ssh.exec!(%{rm -rf "#{remote_path}.gpg"})
   ssh.exec!(%{rm -rf "#{remote_path}"})
 end
 
-# Update the remote digest by removing the remove_me entry.
+# Set the removed flag on the remove_me entry in the remote digest.
 Net::SFTP.start($remote.host, $remote.user) do |ftp|
   json = ftp.download!(remote_digest_path)
   digest = Oj.load(json, mode: :object)
-  digest.delete(remove_name)
+  unless (entry = digest[remove_name]).nil?
+    entry.removed = true
+  end
   json = Oj.dump(digest, indent: 2)
   ftp.open!(remote_digest_path, 'w') { |res| ftp.write!(res[:handle], 0, json) }
 end

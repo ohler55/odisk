@@ -41,6 +41,11 @@ def run_odisk_forget(options='', top=nil, forget=nil)
   `#{::File.dirname($here)}/bin/odisk_forget -r #{ENV['USER']}@localhost:#{$remote_top}:#{::File.join($here, 'test.pass')} #{options} #{$debug ? '-v' : ''} "#{top}" "#{forget}"`
 end
 
+def run_odisk_remove(options='', top=nil, rm=nil)
+  top = $local_top if top.nil?
+  `#{::File.dirname($here)}/bin/odisk_remove -r #{ENV['USER']}@localhost:#{$remote_top}:#{::File.join($here, 'test.pass')} #{options} #{$debug ? '-v' : ''} "#{top}" "#{rm}"`
+end
+
 def mode_to_i(ms)
   m = 0
   raise "#{ms} is not a valid mode string" unless 9 == ms.size 

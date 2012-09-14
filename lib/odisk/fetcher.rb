@@ -42,7 +42,10 @@ module ODisk
         files = @ftp.dir.entries(top).map {|e| e.name }
         job.remote_digest = Oj.load(json, mode: :object)
         missing = []
-        job.remote_digest.entries.each { |e| missing << e.name unless files.include?(e.name + '.gpg') || files.include?(e.name) || e.is_a?(::ODisk::Link) }
+        job.remote_digest.entries.each { |e| missing << e.name unless (files.include?(e.name + '.gpg') ||
+                                                                       files.include?(e.name) ||
+                                                                       e.is_a?(::ODisk::Link) ||
+                                                                       e.removed) }
         unless ::ODisk::Planner::Step::REMOTE == $master
           missing.each { |name| job.remote_digest.delete(name) }
         end
