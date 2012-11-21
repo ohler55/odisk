@@ -1,5 +1,5 @@
 
 module ODisk
   # Current version of the module. 
-  VERSION = '0.2.3'
+  VERSION = '0.9.0'
 end

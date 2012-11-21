@@ -25,22 +25,17 @@ which utilizes an alternative approach to dealing with multiple threads.
 
 ## <a name="release">Release Notes</a>
 
-### Release 0.2.3
+### Release 0.9.0
 
- - Added odisk_forget which clears the local and remote digest of a specific file or directory.
+ - Updated to work properly with Ubuntu 12. 
 
- - Added odisk_remove which marks a file or directory as removed so that all file or directory is removed from all local copies.
+ - Note: the version has been bumped up to 0.9 indicating it is stable enough to use. I have been using it for several months without a problem on 3 Macs and now one Ubuntu machine.
 
 # Plans and Notes
 
-oDisk has only recently been opened up for public viewing. It is barely ready
-for use. I am using it to backup some financial records but I am also keeping
-copies on more than one computer in case something fails. So far the basic
-backup functionality works with backups encrypted and compressed on a remote
-server. Adding new files and making modifications works just fine. Removing
-files has not been implemented yet and changing ownership or mode only take
-effect if the file is touched as well. Feel free to give it a try and let me
-know when you run into bugs.
+So far the basic backup functionality works with backups encrypted and compressed on a remote server. Adding new files
+and making modifications works just fine. Removing files has not been fully implemented yet and changing ownership or
+mode only take effect if the file is touched as well. Feel free to give it a try and let me know when you run into bugs.
 
  - Support ignore of file and directories
   - specify on command line and create .odisk/ignore file
