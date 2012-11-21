@@ -90,9 +90,27 @@ module ODisk
           when :group
             owner = Etc.getpwnam(info.owner).uid
             group = Etc.getgrnam(info.group).gid
-            ::File::lchown(owner, group, path)
+            begin
+              ::File::lchown(owner, group, path)
+            rescue Errno::EPERM
+              begin
+                ::File::chown(owner, group, path)
+              rescue Errno::EPERM
+                begin
+                  ::File::chown(owner, nil, path)
+                  #::Opee::Env.warn("failed to set group to #{info.group} for #{path}")
+                rescue Errno::EPERM
+                  ::File::chown(nil, nil, path)
+                  ::Opee::Env.warn("failed to set owner to #{info.owner} and group to #{info.group} for #{path}")
+                end
+              end
+            end
           when :mode
-            ::File::lchmod(val[1], path)
+            begin
+              ::File::lchmod(val[1], path)
+            rescue NotImplementedError
+              ::File::chmod(val[1], path)
+            end
           else
             # ignore?
           end
