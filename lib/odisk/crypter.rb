@@ -20,7 +20,7 @@ module ODisk
     def encrypt(src, dest, remote)
       ::Opee::Env.info("encrypt \"#{src}\" into \"#{dest}\"")
       unless $dry_run
-        `gpg -c --batch --yes --force-mdc --passphrase-file "#{$remote.pass_file}" -o "#{dest}" "#{src}"`
+        `gpg -c --batch --yes --force-mdc --no-use-agent --passphrase-file "#{$remote.pass_file}" -o "#{dest}" "#{src}"`
         @copy_queue.add_method(:upload, dest, remote, true)
       end
       @crypt_queue.ask(:ready, self)
@@ -29,7 +29,7 @@ module ODisk
     def decrypt(src, dest)
       ::Opee::Env.info("decrypt \"#{src}\" into \"#{dest}\"")
       unless $dry_run
-        `gpg -d --batch --yes -q --passphrase-file "#{$remote.pass_file}" -o "#{dest}" "#{src}"`
+        `gpg -d --batch --yes -q --no-use-agent --passphrase-file "#{$remote.pass_file}" -o "#{dest}" "#{src}"`
         ::File.delete(src)
         ::Opee::Env.warn("Downloaded and decrypted \"#{dest}\"")
       end
