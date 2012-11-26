@@ -30,7 +30,7 @@ module ODisk
       # don't check master flag
       (@name == o.name &&
        @owner == o.owner &&
-       @group == o.group &&
+       (@group == o.group || $group_tolerant) &&
        @mode == o.mode &&
        @removed == o.removed)
     end
