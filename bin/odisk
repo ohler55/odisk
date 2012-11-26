@@ -7,8 +7,8 @@
 
 $VERBOSE = true
 
-while (i = ARGV.index('-I'))
-  x,path = ARGV.slice!(i, 2)
+while (index = ARGV.index('-I'))
+  x,path = ARGV.slice!(index, 2)
   $: << path
 end
 
@@ -68,8 +68,8 @@ opts.on('-m', '--master [local | remote]',
     Process.exit!(0)
   end
 }
-opts.on('-e', '--encrypt-count Integer', Integer, 'number of encryption actors') { |i| $crypter_count = i }
-opts.on('-c', '--copier-count Integer', Integer, 'number of copier actors')      { |i| $copier_count = i }
+opts.on('-e', '--encrypt-count Integer', Integer, 'number of encryption actors') { |cnt| $crypter_count = cnt }
+opts.on('-c', '--copier-count Integer', Integer, 'number of copier actors')      { |cnt| $copier_count = cnt }
 opts.on('-h', '--help', 'Show this display')                                     { puts opts.help; Process.exit!(0) }
 dirs = opts.parse(ARGV)
 
