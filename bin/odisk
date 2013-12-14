@@ -8,7 +8,7 @@
 $VERBOSE = true
 
 while (index = ARGV.index('-I'))
-  x,path = ARGV.slice!(index, 2)
+  _,path = ARGV.slice!(index, 2)
   $: << path
 end
 
@@ -41,6 +41,7 @@ $crypter_count = 2
 $copier_count = 4
 $careful = false
 $group_tolerant = false
+$inspector_port = 0
 
 opts = OptionParser.new(%{Usage: odisk [options] <local_directory>
 
@@ -72,6 +73,7 @@ opts.on('-m', '--master [local | remote]',
 }
 opts.on('-e', '--encrypt-count Integer', Integer, 'number of encryption actors') { |cnt| $crypter_count = cnt }
 opts.on('-c', '--copier-count Integer', Integer, 'number of copier actors')      { |cnt| $copier_count = cnt }
+opts.on('-i', '--inspector-port Integer', Integer, 'inspector port')             { |port| $inspector_port = port }
 opts.on('-h', '--help', 'Show this display')                                     { puts opts.help; Process.exit!(0) }
 dirs = opts.parse(ARGV)
 
@@ -109,8 +111,14 @@ if Logger::INFO >= $verbose
     local:            #{::File.expand_path($local_top)}
     dry run:          #{$dry_run}
     master:           #{$master.nil? ? 'NONE' : (::ODisk::Planner::Step::LOCAL == $master ? 'LOCAL' : 'REMOTE')}
+    inspector port:   #{$inspector_port}
 })
   end
+end
+
+inspector = nil
+if 0 < $inspector_port 
+  inspector = Opee::SocketInspector.new($inspector_port)
 end
 
 # If $local_top/.odisk/remote does not exist or is different that what is in $remote, replace it.
@@ -159,12 +167,13 @@ fetcher = ::ODisk::Fetcher.new(:name => 'Fetcher',
                                :collector => planner) unless $digests_only
 digester = ::ODisk::Digester.new(:name => 'Digester',
                                  :collector => planner)
-starter = ::ODisk::SyncStarter.new(:name => 'Starter',
-                                   :dir_queue => dir_wq,
-                                   :digester => digester,
-                                   :fetcher => fetcher,
-                                   :collector => planner)
+::ODisk::SyncStarter.new(:name => 'Starter',
+                         :dir_queue => dir_wq,
+                         :digester => digester,
+                         :fetcher => fetcher,
+                         :collector => planner)
 
 dir_wq.ask(:add, '')
 
 ::Opee::Env.wait_close()
+#inspector.acceptThread.join() if nil != inspector

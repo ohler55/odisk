@@ -81,7 +81,7 @@ module ODisk
     end
 
     def remove_remote(path)
-      unless $dry_runb
+      unless $dry_run
         @ssh = Net::SSH.start($remote.host, $remote.user) if @ssh.nil?
         out = @ssh.exec!(%{rm -rf "#{path}" "#{path}.gpg"})
         raise out unless out.nil? || out.strip().empty?
