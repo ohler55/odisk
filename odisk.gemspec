@@ -24,9 +24,16 @@ Gem::Specification.new do |s|
   
   s.rubyforge_project = 'odisk'
 
-  s.add_dependency "opee"
-  s.add_dependency "oj"
-  s.add_dependency "net-ssh"
-  s.add_dependency "net-sftp"
+  s.add_development_dependency 'oterm'
+  s.add_development_dependency "opee"
+  s.add_development_dependency "oj"
+  s.add_development_dependency "net-ssh"
+  s.add_development_dependency "net-sftp"
+
+  s.add_runtime_dependency 'oterm'
+  s.add_runtime_dependency "opee"
+  s.add_runtime_dependency "oj"
+  s.add_runtime_dependency "net-ssh"
+  s.add_runtime_dependency "net-sftp"
 
 end

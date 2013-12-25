@@ -15,6 +15,7 @@ end
 # TBD tmp for testing
 $: << ::File.join(::File.dirname(__FILE__), "../../oj/lib")
 $: << ::File.join(::File.dirname(__FILE__), "../../oj/ext")
+$: << ::File.join(::File.dirname(__FILE__), "../../oterm/lib")
 $: << ::File.join(::File.dirname(__FILE__), "../../opee/lib")
 $: << ::File.join(::File.dirname(__FILE__), "../lib")
 
