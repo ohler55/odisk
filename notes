@@ -3,6 +3,10 @@
 ^c^d hide subtree
 ^c^s show subtree
 
+- todo
+ - use VT100 command in listener.insert()
+ - 
+
 - sync -m remote
  - delete when missing in remote but in local
  - write test

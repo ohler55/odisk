@@ -1,7 +1,7 @@
 *.gem
 *.rbc
 .orefs
-.rbenv-version
+.ruby-version
 test/version_tmp
 test/local
 test/remote

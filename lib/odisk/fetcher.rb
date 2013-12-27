@@ -25,9 +25,9 @@ module ODisk
     end
 
     def close()
+      super()
       @ftp.close_channel() unless @ftp.nil?
       @ftp = nil
-      super()
     end
 
     private
