@@ -25,6 +25,12 @@ which utilizes an alternative approach to dealing with multiple threads.
 
 ## <a name="release">Release Notes</a>
 
+### Release 1.0.0
+
+ - Added support for the Opee/OTerm Inspector
+
+ - Fixed race condition on shutdown bug
+
 ### Release 0.9.0
 
  - Updated to work properly with Ubuntu 12. 

@@ -4,8 +4,7 @@
 ^c^s show subtree
 
 - todo
- - use VT100 command in listener.insert()
- - 
+ - releases
 
 - sync -m remote
  - delete when missing in remote but in local
