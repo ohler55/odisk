@@ -11,6 +11,7 @@ Gem::Specification.new do |s|
   s.homepage = "http://www.ohler.com/odisk"
   s.summary = "Remote Encrypted File Synchronization, oDisk"
   s.description = %{Remote Encrypted File Synchronization, oDisk}
+  s.licenses = ['MIT', 'GPL-3.0']
 
   s.files = Dir["{lib}/**/*.{rb}"] + ['LICENSE', 'README.md']
 
