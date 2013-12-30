@@ -3,8 +3,6 @@
 ^c^d hide subtree
 ^c^s show subtree
 
-- todo
- - releases
 
 - sync -m remote
  - delete when missing in remote but in local
