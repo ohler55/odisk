@@ -25,6 +25,10 @@ which utilizes an alternative approach to dealing with multiple threads.
 
 ## <a name="release">Release Notes</a>
 
+### Release 1.0.1
+
+ - Ruby time has changed so a change in time comparisons was made.
+
 ### Release 1.0.0
 
  - Added support for the Opee/OTerm Inspector

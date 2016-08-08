@@ -51,6 +51,19 @@ module ODisk
             steps[name] = Step.new(name, Step::REMOTE, Step::DIGEST)
           end
         elsif le != re # both exist but are different
+          # some helpful info
+          if le.owner != re.owner
+            ::Opee::Env.info("#{le.name} owner difference #{le.owner} != #{re.owner}")
+          elsif le.group != re.group
+            ::Opee::Env.info("#{le.name} group difference #{le.group} != #{re.group}")
+          elsif le.mode != re.mode
+            ::Opee::Env.info("#{le.name} mode difference #{le.mode} != #{re.mode}")
+          elsif le.mtime.sec != re.mtime.sec
+            ::Opee::Env.info("#{le.name} mtime (sec) difference #{le.mtime.sec} != #{re.mtime.sec}")
+          elsif le.size != re.size
+            ::Opee::Env.info("#{le.name} size difference #{le.size} != #{re.size}")
+          end
+
           if le.class != re.class
             ::Opee::Env.error("Conflict syncing #{ld.top_path}/#{name}. Local and remote types do not match.")
             steps[name] = Step.new(name, Step::LOCAL, Step::ERROR)

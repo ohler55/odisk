@@ -5,7 +5,7 @@
 # required. That can be set in the RUBYOPT environment variable.
 # export RUBYOPT=-w
 
-$VERBOSE = true
+#$VERBOSE = true
 
 while (index = ARGV.index('-I'))
   _,path = ARGV.slice!(index, 2)

@@ -10,7 +10,7 @@ module ODisk
     end
 
     def eql?(o)
-      super(o) && @size == o.size && @mtime == o.mtime
+      super(o) && @size == o.size && @mtime.sec == o.mtime.sec
     end
     alias == eql?
 
