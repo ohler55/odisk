@@ -24,7 +24,11 @@ module ODisk
     def self.create_info(path, filename=nil, top=nil)
       top = $local_top if top.nil?
       filename = ::File.basename(path) if filename.nil?
-      stat = ::File.lstat(path)
+      begin
+        stat = ::File.lstat(path)
+      rescue
+        return nil
+      end
       if stat.directory?
         c = ::ODisk::Dir.new(filename)
       elsif stat.symlink?

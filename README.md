@@ -25,6 +25,12 @@ which utilizes an alternative approach to dealing with multiple threads.
 
 ## <a name="release">Release Notes</a>
 
+### Release 1.0.2
+
+ - Made groups handling more tolerant.
+
+ - Updated gpg command arguments for more modern version.
+
 ### Release 1.0.1
 
  - Ruby time has changed so a change in time comparisons was made.

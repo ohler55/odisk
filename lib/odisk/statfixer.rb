@@ -73,6 +73,22 @@ module ODisk
       # TBD tell progress about the completion
     end
 
+    def get_group(g)
+      begin
+        Etc.getgrnam(g).gid
+      rescue
+        nil
+      end
+    end
+
+    def get_owner(o)
+      begin
+        Etc.getpwnam(o).uid
+      rescue
+        nil
+      end
+    end
+
     def fix_stats(path, info)
       e = Digest.create_info(path)
       diff = Diff.new(e, info)
@@ -84,12 +100,12 @@ module ODisk
           when :mtime
            ::File.utime(info.mtime, info.mtime, path) unless info.is_a?(::ODisk::Link)
           when :owner
-            owner = Etc.getpwnam(info.owner).uid
-            group = Etc.getgrnam(info.group).gid
+            owner = get_owner(info.owner)
+            group = get_group(info.group)
             ::File::lchown(owner, group, path)
           when :group
-            owner = Etc.getpwnam(info.owner).uid
-            group = Etc.getgrnam(info.group).gid
+            owner = get_owner(info.owner)
+            group = get_group(info.group)
             begin
               ::File::lchown(owner, group, path)
             rescue Errno::EPERM

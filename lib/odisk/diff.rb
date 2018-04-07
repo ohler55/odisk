@@ -63,7 +63,9 @@ module ODisk
         end
         h[k] = [lv, rv] unless lv == rv unless (:mtime == m && !@remote.is_a?(::ODisk::File))
       end
-      pre = prefix.nil? ? @local.name : (prefix + '.' + @local.name)
+      unless @local.nil?
+        pre = prefix.nil? ? @local.name : (prefix + '.' + @local.name)
+      end
       @sub_diffs.each do |name,d|
         d.fill_hash(pre, h)
       end
