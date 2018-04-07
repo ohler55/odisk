@@ -177,4 +177,4 @@ digester = ::ODisk::Digester.new(:name => 'Digester',
 dir_wq.ask(:add, '')
 
 ::Opee::Env.wait_close()
-#inspector.acceptThread.join() if nil != inspector
+inspector.acceptThread.join() unless inspector.nil?
