@@ -84,11 +84,11 @@ module ODisk
 
     def remove_local(path)
       begin
-	`rm -rf "#{path}"` unless $dry_run
+	`rm -rf '#{path}'` unless $dry_run
 	::Opee::Env.warn("Removed local \"#{path}\"")
       rescue Exception => e
         ::Opee::Env.error("Remove of local \"#{path}\" failed: #{e.class}: #{e.message}")
-        #::Opee::Env.rescue(e)
+        ::Opee::Env.rescue(e)
       end
     end
 
