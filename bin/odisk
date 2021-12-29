@@ -118,7 +118,7 @@ if Logger::INFO >= $verbose
 end
 
 inspector = nil
-if 0 < $inspector_port 
+if 0 < $inspector_port
   inspector = Opee::SocketInspector.new($inspector_port)
 end
 

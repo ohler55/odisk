@@ -16,7 +16,7 @@ module ODisk
       super(options)
       @copy_queue.ask(:ready, self)
     end
-    
+
     def set_options(options)
       super(options)
       @copy_queue = options[:copy_queue]
@@ -47,11 +47,18 @@ module ODisk
               assure_dirs_exist(::File.dirname(remote))
               retry
             rescue Exception => e2
-              ::Opee::Env.error("Upload of \"#{local}\" failed: #{e2.class}: #{e2.message}")
+              puts "Upload of \"#{local}\" failed: #{e2.class}: #{e2.message}"
+	      puts e2.backtrace.join("\n  ")
+              #::Opee::Env.error("Upload of \"#{local}\" failed: #{e2.class}: #{e2.message}")
             end
           else
-            ::Opee::Env.error("Upload of \"#{local}\" failed: #{e.class}: (#{e.code}) #{e.description}\n #{e.text}\n #{e.response}")
+            puts "Upload of \"#{local}\" failed: #{e.class}: (#{e.code}) #{e.description}\n #{e.text}\n #{e.response}"
+	    puts e.backtrace.join("\n  ")
+            #::Opee::Env.error("Upload of \"#{local}\" failed: #{e.class}: (#{e.code}) #{e.description}\n #{e.text}\n #{e.response}")
           end
+	rescue Exception => e
+          puts "Upload of \"#{local}\" failed: #{e.class}: #{e.message}"
+	  puts e.backtrace.join("\n  ")
         end
       end
       @copy_queue.ask(:ready, self)
@@ -76,15 +83,21 @@ module ODisk
     end
 
     def remove_local(path)
-      `rm -rf "#{path}"` unless $dry_run
-      ::Opee::Env.warn("Removed local \"#{path}\"")
+      begin
+	`rm -rf "#{path}"` unless $dry_run
+	::Opee::Env.warn("Removed local \"#{path}\"")
+      rescue Exception => e
+        ::Opee::Env.error("Remove of local \"#{path}\" failed: #{e.class}: #{e.message}")
+        #::Opee::Env.rescue(e)
+      end
     end
 
     def remove_remote(path)
       unless $dry_run
         @ssh = Net::SSH.start($remote.host, $remote.user) if @ssh.nil?
         out = @ssh.exec!(%{rm -rf "#{path}" "#{path}.gpg"})
-        raise out unless out.nil? || out.strip().empty?
+        puts "Failed to remove #{path}. #{out}" unless out.nil? || out.strip().empty?
+        #raise out unless out.nil? || out.strip().empty?
       end
       ::Opee::Env.warn("Removed remote \"#{path}\"")
     end

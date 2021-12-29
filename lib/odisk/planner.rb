@@ -11,7 +11,7 @@ module ODisk
     def initialize(options={})
       super(options)
     end
-    
+
     def set_options(options)
       super(options)
       @dir_queue = options[:dir_queue]
@@ -137,7 +137,7 @@ module ODisk
       else
         process_sync(job, odisk_dir)
       end
-    end    
+    end
 
     def process_new(job, odisk_dir)
       job.current_digest.version = 1
@@ -157,7 +157,7 @@ module ODisk
           local = ::File.join($local_top, path)
           remote = ::File.join($remote.dir, path)
           if $remote.encrypt?
-            encrypt_path = (job.path.empty? ? 
+            encrypt_path = (job.path.empty? ?
                             ::File.join($local_top, '.odisk', e.name + '.gpg') :
                             ::File.join($local_top, job.path, '.odisk', e.name + '.gpg'))
             @crypt_queue.add_method(:encrypt, local, encrypt_path, remote + '.gpg')
@@ -173,7 +173,7 @@ module ODisk
       remote = ::File.join($remote.dir, path)
       @copy_queue.add_method(:upload, local, remote)
     end
-    
+
     def process_down(job, odisk_dir)
       job.new_digest = job.remote_digest
       Oj.to_file(::File.join(odisk_dir, 'digest.json'), job.new_digest, indent: 2)
@@ -190,7 +190,7 @@ module ODisk
           remote = ::File.join($remote.dir, path)
           stat_job.add_mod(e.name)
           if $remote.encrypt?
-            encrypt_path = (job.path.empty? ? 
+            encrypt_path = (job.path.empty? ?
                             ::File.join($local_top, '.odisk', e.name + '.gpg') :
                             ::File.join($local_top, job.path, '.odisk', e.name + '.gpg'))
             @copy_queue.add_method(:download, remote + '.gpg', encrypt_path, local)
@@ -255,7 +255,7 @@ module ODisk
           path = job.path.empty? ? s.name : ::File.join(job.path, s.name)
           local = ::File.join($local_top, path)
           remote = ::File.join($remote.dir, path)
-          encrypt_path = (job.path.empty? ? 
+          encrypt_path = (job.path.empty? ?
                           ::File.join($local_top, '.odisk', s.name + '.gpg') :
                           ::File.join($local_top, job.path, '.odisk', s.name + '.gpg'))
           if Step::REMOTE == s.master
@@ -321,7 +321,7 @@ module ODisk
       LINK   = 3
       DIGEST = 4
       ERROR  = 5
-      
+
       # location of master
       LOCAL  = true
       REMOTE = false
